@@ -12,7 +12,8 @@ set(OpenBLAS_VERSION "${OpenBLAS_MAJOR_VERSION}.${OpenBLAS_MINOR_VERSION}.${Open
 # Adhere to GNU filesystem layout conventions
 include(GNUInstallDirs)
 
-set(OpenBLAS_LIBNAME openblas)
+# Upstream it is lowercase openblas
+set(OpenBLAS_LIBNAME ${CMAKE_PROJECT_NAME})
 
 #######
 if(MSVC)
@@ -267,3 +268,28 @@ if(PKG_CONFIG_FOUND)
 	configure_file(${PROJECT_SOURCE_DIR}/cmake/openblas.pc.in ${PROJECT_BINARY_DIR}/openblas.pc @ONLY)
 	install (FILES ${PROJECT_BINARY_DIR}/openblas.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/)
 endif()
+
+include(CMakePackageConfigHelpers)
+set(TARGETS_EXPORT_NAME "${CMAKE_PROJECT_NAME}Targets")
+# export targets for find_package config mode
+export(TARGETS ${OpenBLAS_LIBNAME}
+FILE ${CMAKE_BINARY_DIR}/${TARGETS_EXPORT_NAME}.cmake)
+
+install(TARGETS ${OpenBLAS_LIBNAME}
+        EXPORT ${TARGETS_EXPORT_NAME}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+configure_package_config_file(
+  "cmake/Config.cmake.in"
+  "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
+)
+install(FILES
+        ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
+
+install(EXPORT ${TARGETS_EXPORT_NAME}
+        NAMESPACE "${CMAKE_PROJECT_NAME}::"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
